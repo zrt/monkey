@@ -13,7 +13,7 @@ BLOGPATH = config['BLOGPATH']
 POSTSPATH = os.path.join(BLOGPATH, 'source', '_posts')
 
 def create_worker(title,article):
-	filename = os.path.join(POSTSPATH,time.strftime("%Y-%m-%d", time.localtime())+'-%s.md'%title)
+	filename = os.path.join(POSTSPATH,time.strftime("%Y-%m-%d", time.localtime())+'-%s.md'%title.replace(' ','-'))
 	try:
 		os.system('cd %s && git pull'%BLOGPATH)
 		with codecs.open(filename, 'w', 'utf-8') as f:
