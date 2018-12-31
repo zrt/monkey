@@ -128,7 +128,7 @@ def wechat():
                 else:
                     title = rs.split(' ')[0]
                     titleascii = rs.split(' ')[1]
-                    reply = create_reply('confirmsend(cs)? %d/%d\n'%(500, len(article))+'ascii title: 'titleascii+'\n'+title+'\n'+article[:500] +'\n\n <cont> to continue', msg)
+                    reply = create_reply('confirmsend(cs)? %d/%d\n'%(500, len(article))+'ascii title: '+titleascii+'\n'+title+'\n'+article[:500] +'\n\n <cont> to continue', msg)
                     lastpos = 500
             elif cmd == u'confirmsend' or cmd == u'cs':
                 if title == '' or titleascii == '' or article == '':
