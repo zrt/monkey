@@ -12,8 +12,8 @@ sys.setdefaultencoding('utf8')
 BLOGPATH = config['BLOGPATH']
 POSTSPATH = os.path.join(BLOGPATH, 'source', '_posts')
 
-def create_worker(title,article):
-	filename = os.path.join(POSTSPATH,time.strftime("%Y-%m-%d", time.localtime())+'-%s.md'%title.replace(' ','-'))
+def create_worker(title,titleascii,article):
+	filename = os.path.join(POSTSPATH,time.strftime("%Y-%m-%d", time.localtime())+'-%s.md'%titleascii.replace(' ','-'))
 	try:
 		os.system('cd %s && git pull'%BLOGPATH)
 		with codecs.open(filename, 'w', 'utf-8') as f:
@@ -32,9 +32,9 @@ tags: 灌水
 	except Exception as e:
 		print e
 
-def create(title,article):
+def create(title,titleascii,article):
 	# 异步create
-	t = threading.Thread(target=create_worker,args=(title,article))
+	t = threading.Thread(target=create_worker,args=(title,titleascii,article))
 	t.start()
 	return t
 

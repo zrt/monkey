@@ -27,6 +27,7 @@ app = Flask(__name__)
 msgs = []
 article = ''
 title = ''
+titleascii = ''
 thread = None
 inwritemode = False
 lastpos = 0
@@ -48,6 +49,7 @@ def wechat():
     global thread
     global inwritemode
     global lastpos
+    global titleascii
     signature = request.args.get('signature', '')
     timestamp = request.args.get('timestamp', '')
     nonce = request.args.get('nonce', '')
@@ -112,6 +114,7 @@ def wechat():
             elif cmd == u'newarticle' or cmd == u'na':
                 article = ''
                 title = ''
+                titleascii = ''
                 reply = create_reply(cmd+' ok' , msg)
             elif cmd == u'appendarticle' or cmd == u'aa':
                 article += rs+'\n'
@@ -120,19 +123,24 @@ def wechat():
                 reply = create_reply('current %d/%d:\n'%(500, len(article))+article[:500] +'\n\n <cont> to continue' , msg)
                 lastpos = 500
             elif cmd == u'sendarticle' or cmd == u'sda':
-                title = rs
-                reply = create_reply('confirmsend(cs)? %d/%d\n'%(500, len(article))+title+'\n'+article[:500] +'\n\n <cont> to continue', msg)
-                lastpos = 500
+                if len(rs.split(' ')) < 2:
+                    reply = create_reply('usage: sda title titleascii', msg)
+                else:
+                    title = rs.split(' ')[0]
+                    titleascii = rs.split(' ')[1]
+                    reply = create_reply('confirmsend(cs)? %d/%d\n'%(500, len(article))+'ascii title: 'titleascii+'\n'+title+'\n'+article[:500] +'\n\n <cont> to continue', msg)
+                    lastpos = 500
             elif cmd == u'confirmsend' or cmd == u'cs':
-                if title == '' or article == '':
+                if title == '' or titleascii == '' or article == '':
                     reply = create_reply('error: something empty' , msg)
                 else:
                     # sending
                     article += '\n\n> via [wechat-monkey](https://github.com/zrt/monkey)\n'
-                    thread = articlemanager.create(title,article)
+                    thread = articlemanager.create(title,titleascii,article)
                     reply = create_reply('sending...(<check> to check status)' , msg)
-                    title = ''
-                    article = ''
+                    # title = ''
+                    # titleascii = ''
+                    # article = ''
             elif cmd == u'check':
                 if thread == None or thread.isAlive() == False:
                     thread = None
