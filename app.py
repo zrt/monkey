@@ -28,6 +28,8 @@ msgs = []
 article = ''
 title = ''
 thread = None
+inwritemode = False
+lastpos = 0
 
 def get_status():
     
@@ -44,6 +46,8 @@ def wechat():
     global article
     global title
     global thread
+    global inwritemode
+    global lastpos
     signature = request.args.get('signature', '')
     timestamp = request.args.get('timestamp', '')
     nonce = request.args.get('nonce', '')
@@ -73,13 +77,27 @@ def wechat():
         elif s==u'openid':
             reply = create_reply(openid, msg)
         elif isadmin:
+            nocmd = False
+            if inwritemode:
+                if s == u'exit':
+                    inwritemode = False
+                    reply = create_reply('exited writemode', msg)
+                else:
+                    article += s+'\n'
+                    reply = create_reply('ok '+str(len(s)), msg)
+                nocmd = True
+            elif s==u'continue' or s==u'cont':
+                reply = create_reply('%d-%d/%d'%(lastpos,lastpos+500, len(article))+'\n'+article[lastpos:lastpos+500]+'\n\n<cont> to continue', msg)
+                lastpos += 500
+                nocmd = True
             cmd = s.split(' ')[0]
             if ' ' in s:
                 rs = s[s.index(' ')+1:]
             else:
                 rs = s
-
-            if cmd == u'show':
+            if nocmd:
+                pass
+            elif cmd == u'show':
                 reply = create_reply(str(msgs), msg)
                 msgs = []
             elif cmd == u'echo':
@@ -87,7 +105,10 @@ def wechat():
             elif cmd == u'help' or cmd == u'h':
                 reply = create_reply(str(['h[elp]','echo','who','show', 
                     'newarticle(na)', 'appendarticle(aa)','showarticle(sa)',
-                     'sendarticle(sda)']), msg)
+                     'sendarticle(sda)','writemode(wm)']), msg)
+            elif cmd == u'writemode' or cmd == u'wm':
+                inwritemode = True
+                reply = create_reply('in writemode (<exit> to exit)', msg)
             elif cmd == u'newarticle' or cmd == u'na':
                 article = ''
                 title = ''
@@ -96,10 +117,12 @@ def wechat():
                 article += rs+'\n'
                 reply = create_reply(cmd+' ok' , msg)
             elif cmd == u'showarticle' or cmd == u'sa':
-                reply = create_reply('current:\n'+article , msg)
+                reply = create_reply('current %d/%d:\n'%(500, len(article))+article[:500] +'\n\n <cont> to continue' , msg)
+                lastpos = 500
             elif cmd == u'sendarticle' or cmd == u'sda':
                 title = rs
-                reply = create_reply('confirmsend(cs)?\n'+title+'\n'+article , msg)
+                reply = create_reply('confirmsend(cs)? %d/%d\n'%(500, len(article))+title+'\n'+article[:500] +'\n\n <cont> to continue', msg)
+                lastpos = 500
             elif cmd == u'confirmsend' or cmd == u'cs':
                 if title == '' or article == '':
                     reply = create_reply('error: something empty' , msg)
